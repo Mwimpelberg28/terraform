@@ -3,10 +3,12 @@ terraform {
   backend "s3" {}
 }
 
+
+
 resource "aws_security_group" "ssh_sg_tf" {
  name        = "ssh"
  description = "Allow ssh to bastion server"
- vpc_id      = "vpc-0ec62b52a6bf2a916"
+ vpc_id      = data.aws_vpc.dev.id
 
 ingress {
    description = "SSH ingress"
@@ -30,10 +32,10 @@ module "ec2_instance" {
   name = "single-instance"
   ami = "ami-03f65b8614a860c29"
   instance_type          = "t3.micro"
-  key_name               = "macbookpro"
+  key_name               = "laptop"
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.ssh_sg_tf.id]
-  subnet_id              = "subnet-02bd495c0eeed8c23"
+  subnet_id              = data.aws_subnet.public.id
 
   tags = {
     Terraform   = "true"
