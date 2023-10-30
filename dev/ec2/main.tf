@@ -4,6 +4,7 @@ terraform {
 }
 
 
+demodb.cw6h8tdckqd6.us-west-2.rds.amazonaws.com
 
 resource "aws_security_group" "ssh_sg_tf" {
  name        = "ssh"

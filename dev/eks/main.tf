@@ -1,0 +1,63 @@
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 19.0"
+
+  cluster_name    = "matt-cluster"
+  cluster_version = "1.27"
+
+  cluster_endpoint_public_access  = true
+
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+  }
+
+  vpc_id                   = data.aws_vpc.dev.id
+  subnet_ids               = [data.aws_subnet.public1.id, data.aws_subnet.public2.id]
+  control_plane_subnet_ids = [data.aws_subnet.public1.id, data.aws_subnet.public2.id]
+
+  # Self Managed Node Group(s)
+  self_managed_node_group_defaults = {
+    instance_type                          = "t3.micro"
+    update_launch_template_default_version = true
+  }
+
+  self_managed_node_groups = {
+    one = {
+      name         = "mixed-1"
+      max_size     = 4
+      desired_size = 4
+
+      use_mixed_instances_policy = true
+      mixed_instances_policy = {
+        instances_distribution = {
+          on_demand_base_capacity                  = 0
+          on_demand_percentage_above_base_capacity = 10
+          spot_allocation_strategy                 = "capacity-optimized"
+        }
+      }
+    }
+  }
+
+  # aws-auth configmap
+  manage_aws_auth_configmap = true
+
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::850471083155:user/mwimpelberg"
+      username = "mwimpelberg"
+    },
+  ]
+
+  tags = {
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
